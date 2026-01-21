@@ -24,9 +24,9 @@ app.get("/", (req, res) => {
 })
 
 // Endpoint to get all thoughts, sorted by date (most recent first)
-// Query params 'hearts' can be used to filter thoughts with minimum number of hearts
+// Query params 'hearts' and 'date' can be used to filter thoughts with minimum number of hearts and thoughts created after a specific date
 app.get("/thoughts", (req, res) => {
-  const { hearts } = req.query
+  const { hearts, after } = req.query
 
   let filteredThoughts = thoughtData
 
@@ -35,9 +35,14 @@ app.get("/thoughts", (req, res) => {
     filteredThoughts = filteredThoughts.filter((thought) => thought.hearts >= minHearts)
   }
 
-  const sortThoughtByDate = [...filteredThoughts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  if (after) {
+    const afterDate = new Date(after)
+    filteredThoughts = filteredThoughts.filter((thought) => new Date(thought.createdAt) > afterDate)
+  }
 
-  res.json(sortThoughtByDate)
+  const sortedThoughts = [...filteredThoughts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+  res.json(sortedThoughts)
 })
 
 // Endpoint to get a single thought by its id
