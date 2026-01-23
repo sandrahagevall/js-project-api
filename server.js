@@ -32,12 +32,16 @@ app.get("/thoughts", (req, res) => {
 
   if (hearts) {
     const minHearts = Number(hearts)
-    filteredThoughts = filteredThoughts.filter((thought) => thought.hearts >= minHearts)
+    filteredThoughts = filteredThoughts.filter((thought) => {
+      return thought.hearts >= minHearts
+    })
   }
 
   if (after) {
     const afterDate = new Date(after)
-    filteredThoughts = filteredThoughts.filter((thought) => new Date(thought.createdAt) > afterDate)
+    filteredThoughts = filteredThoughts.filter((thought) => {
+      return new Date(thought.createdAt) > afterDate
+    })
   }
 
   const sortedThoughts = [...filteredThoughts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
