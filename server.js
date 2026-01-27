@@ -78,15 +78,20 @@ app.get("/thoughts", async (req, res) => {
 })
 
 // Endpoint to get a single thought by its id
-app.get("/thoughts/:id", (req, res) => {
+app.get("/thoughts/:id", async (req, res) => {
   const id = req.params.id
-  const thought = thoughtData.find((thought) => thought._id === id)
 
-  if (!thought) {
-    return res.status(404).json({ error: `thought with id ${id} does not exist` })
+  try {
+    const thought = await Thought.findById(id)
+
+    if (!thought) {
+      return res.status(404).json({ error: `thought with id ${id} does not exist` })
+    }
+
+    res.json(thought)
+  } catch (error) {
+    res.status(500).json({ error: "Could not fetch thought" })
   }
-
-  res.json(thought)
 })
 
 // Start the server
