@@ -1,7 +1,39 @@
 import cors from "cors"
 import express from "express"
 import listEndpoints from "express-list-endpoints"
-import thoughtData from "./data.json"
+import dotenv from "dotenv"
+import mongoose from "mongoose"
+// import thoughtData from "./data.json"
+
+dotenv.config()
+
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => {
+    console.log("Connected to MongoDB")
+  })
+  .catch((error) => {
+    console.log("Could not connect to MongoDB", error)
+  })
+
+const thoughtSchema = new mongoose.Schema({
+  message: {
+    type: String,
+    required: true,
+    minlength: 5,
+    maxlength: 140,
+    trim: true
+  },
+  hearts: {
+    type: Number,
+    default: 0
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+})
+
+const Thought = mongoose.model("Thought", thoughtSchema)
 
 // Defines the port the app will run on. Defaults to 8080, but can be overridden
 // when starting the server. Example command to overwrite PORT env variable value:
@@ -25,28 +57,24 @@ app.get("/", (req, res) => {
 
 // Endpoint to get all thoughts, sorted by date (most recent first)
 // Query params 'hearts' and 'after' can be used to filter thoughts with minimum number of hearts and thoughts created after a specific date
-app.get("/thoughts", (req, res) => {
+app.get("/thoughts", async (req, res) => {
   const { hearts, after } = req.query
 
-  let filteredThoughts = thoughtData
+  const filter = {}
 
   if (hearts) {
-    const minHearts = Number(hearts)
-    filteredThoughts = filteredThoughts.filter((thought) => {
-      return thought.hearts >= minHearts
-    })
+    filter.hearts = { $gte: Number(hearts) }
   }
 
   if (after) {
-    const afterDate = new Date(after)
-    filteredThoughts = filteredThoughts.filter((thought) => {
-      return new Date(thought.createdAt) > afterDate
-    })
+    filter.createdAt = { $gt: new Date(after) }
   }
-
-  const sortedThoughts = [...filteredThoughts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-
-  res.json(sortedThoughts)
+  try {
+    const thoughts = await Thought.find(filter).sort({ createdAt: "desc" }).limit(20)
+    res.json(thoughts)
+  } catch (error) {
+    res.status(500).json({ error: "Could not fetch thoughts" })
+  }
 })
 
 // Endpoint to get a single thought by its id
