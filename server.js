@@ -1,13 +1,14 @@
 import cors from "cors"
 import express from "express"
 import listEndpoints from "express-list-endpoints"
-import dotenv from "dotenv"
+import "dotenv/config"
 import mongoose from "mongoose"
-// import thoughtData from "./data.json"
+// import thoughtJson from "./data.json"
 
-dotenv.config()
+// let thoughtData = thoughtJson
 
-mongoose.connect(process.env.MONGO_URL)
+const mongoUrl = process.env.MONGO_URL
+mongoose.connect(mongoUrl)
   .then(() => {
     console.log("Connected to MongoDB")
   })
@@ -15,6 +16,17 @@ mongoose.connect(process.env.MONGO_URL)
     console.log("Could not connect to MongoDB", error)
   })
 
+// Defines the port the app will run on. Defaults to 8080, but can be overridden
+// when starting the server. Example command to overwrite PORT env variable value:
+// PORT=9000 npm start
+const port = process.env.PORT || 8080
+const app = express()
+
+// Add middlewares to enable cors and json body parsing
+app.use(cors())
+app.use(express.json())
+
+// Mongoose schema and model
 const thoughtSchema = new mongoose.Schema({
   message: {
     type: String,
@@ -35,16 +47,6 @@ const thoughtSchema = new mongoose.Schema({
 
 const Thought = mongoose.model("Thought", thoughtSchema)
 
-// Defines the port the app will run on. Defaults to 8080, but can be overridden
-// when starting the server. Example command to overwrite PORT env variable value:
-// PORT=9000 npm start
-const port = process.env.PORT || 8080
-const app = express()
-
-// Add middlewares to enable cors and json body parsing
-app.use(cors())
-app.use(express.json())
-
 // Start defining your routes here
 app.get("/", (req, res) => {
   const endpoints = listEndpoints(app)
@@ -60,20 +62,38 @@ app.get("/", (req, res) => {
 app.get("/thoughts", async (req, res) => {
   const { hearts, after } = req.query
 
-  const filter = {}
+  const query = {}
 
   if (hearts) {
-    filter.hearts = { $gte: Number(hearts) }
+    query.hearts = { $gte: Number(hearts) }
   }
 
   if (after) {
-    filter.createdAt = { $gt: new Date(after) }
+    query.createdAt = { $gt: new Date(after) }
   }
   try {
-    const thoughts = await Thought.find(filter).sort({ createdAt: "desc" }).limit(20)
-    res.json(thoughts)
+    const filteredThoughts = await Thought.find(query).sort({ createdAt: "desc" }).limit(20)
+
+    if (filteredThoughts.length === 0) {
+      return res.status(404).json({
+        success: false,
+        response: [],
+        message: "No thoughts was found for that query",
+      })
+    }
+
+    return res.status(200).json({
+      success: true,
+      response: filteredThoughts,
+      message: "Success",
+    })
+
   } catch (error) {
-    res.status(500).json({ error: "Could not fetch thoughts" })
+    res.status(500).json({
+      success: false,
+      response: [],
+      message: error,
+    })
   }
 })
 
@@ -85,12 +105,45 @@ app.get("/thoughts/:id", async (req, res) => {
     const thought = await Thought.findById(id)
 
     if (!thought) {
-      return res.status(404).json({ error: `thought with id ${id} does not exist` })
+      return res.status(404).json({
+        success: false,
+        response: null,
+        message: "Thought not found",
+      })
     }
+    return res.status(200).json({
+      success: true,
+      response: thought,
+      message: "Success",
+    })
 
-    res.json(thought)
   } catch (error) {
-    res.status(500).json({ error: "Could not fetch thought" })
+    return res.status(500).json({
+      success: false,
+      response: null,
+      message: error,
+    })
+  }
+})
+
+// Endpoint to create a new thought
+app.post("/thoughts", async (req, res) => {
+  const { message } = req.body
+
+  try {
+    const createdThought = await new Thought({ message }).save()
+
+    return res.status(201).json({
+      success: true,
+      response: createdThought,
+      message: "Thought created successfully",
+    })
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      response: null,
+      message: error,
+    })
   }
 })
 
