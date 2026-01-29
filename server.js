@@ -56,21 +56,26 @@ app.get("/", (req, res) => {
 })
 
 // Endpoint to get all thoughts, sorted by date (most recent first)
-// Query params 'hearts' and 'after' can be used to filter thoughts with minimum number of hearts and thoughts created after a specific date
+// Query params 'hearts','sort' and 'order' can be used to filter thoughts on minimum likes and sort them by date or likes
 app.get("/thoughts", async (req, res) => {
-  const { hearts, after } = req.query
+  const { hearts, sort, order } = req.query
 
   const query = {}
+
+  let sortOption = { createdAt: "desc" }
+
+  if (sort === "date") {
+    sortOption = { createdAt: order === "asc" ? "asc" : "desc" }
+  } else if (sort === "likes") {
+    sortOption = { hearts: order === "asc" ? "asc" : "desc" }
+  }
 
   if (hearts) {
     query.hearts = { $gte: Number(hearts) }
   }
 
-  if (after) {
-    query.createdAt = { $gt: new Date(after) }
-  }
   try {
-    const filteredThoughts = await Thought.find(query).sort({ createdAt: "desc" }).limit(20)
+    const filteredThoughts = await Thought.find(query).sort(sortOption).limit(20)
 
     if (filteredThoughts.length === 0) {
       return res.status(404).json({
