@@ -3,9 +3,7 @@ import express from "express"
 import listEndpoints from "express-list-endpoints"
 import "dotenv/config"
 import mongoose from "mongoose"
-// import thoughtJson from "./data.json"
 
-// let thoughtData = thoughtJson
 
 const mongoUrl = process.env.MONGO_URL
 mongoose.connect(mongoUrl)
