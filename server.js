@@ -14,6 +14,10 @@ mongoose.connect(mongoUrl)
     console.log("Could not connect to MongoDB", error)
   })
 
+mongoose.connection.on("connected", () => {
+  console.log("CONNECTED TO DATABASE:", mongoose.connection.name)
+})
+
 // Defines the port the app will run on. Defaults to 8080, but can be overridden
 // when starting the server. Example command to overwrite PORT env variable value:
 // PORT=9000 npm start
@@ -77,13 +81,13 @@ app.get("/thoughts", async (req, res) => {
   try {
     const filteredThoughts = await Thought.find(query).sort(sortOption).limit(20)
 
-    // if (filteredThoughts.length === 0) {
-    //   return res.status(404).json({
-    //     success: false,
-    //     response: [],
-    //     message: "No thoughts was found for that query",
-    //   })
-    // }
+    if (filteredThoughts.length === 0) {
+      return res.status(404).json({
+        success: false,
+        response: [],
+        message: "No thoughts was found for that query",
+      })
+    }
 
     return res.status(200).json({
       success: true,
