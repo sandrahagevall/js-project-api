@@ -77,13 +77,13 @@ app.get("/thoughts", async (req, res) => {
   try {
     const filteredThoughts = await Thought.find(query).sort(sortOption).limit(20)
 
-    if (filteredThoughts.length === 0) {
-      return res.status(404).json({
-        success: false,
-        response: [],
-        message: "No thoughts was found for that query",
-      })
-    }
+    // if (filteredThoughts.length === 0) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     response: [],
+    //     message: "No thoughts was found for that query",
+    //   })
+    // }
 
     return res.status(200).json({
       success: true,
