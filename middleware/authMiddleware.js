@@ -3,7 +3,7 @@ import { User } from "../models/User"
 export const authenticateUser = async (req, res, next) => {
   try {
     const user = await User.findOne({
-      accessToken: req.header("Authorization").replace("Bearer ", "")
+      accessToken: req.header("Authorization").replace("Bearer ", ""),
     })
 
     if (user) {

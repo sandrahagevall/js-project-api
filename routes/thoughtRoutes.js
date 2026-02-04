@@ -83,7 +83,10 @@ router.post("/", authenticateUser, async (req, res) => {
   const { message } = req.body
 
   try {
-    const createdThought = await new Thought({ message }).save()
+    const createdThought = await new Thought({
+      message,
+      userId: req.user._id
+    }).save()
 
     return res.status(201).json({
       success: true,
