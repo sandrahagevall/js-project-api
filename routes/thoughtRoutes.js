@@ -85,7 +85,7 @@ router.post("/", authenticateUser, async (req, res) => {
   try {
     const createdThought = await new Thought({
       message,
-      userId: req.user._id
+      userId: req.user._id,
     }).save()
 
     return res.status(201).json({
@@ -171,6 +171,10 @@ router.patch("/:id", authenticateUser, async (req, res) => {
   const { id } = req.params
   const { message } = req.body
 
+  console.log("🔥 PATCH /thoughts/:id HIT")
+  console.log("REQ PARAM ID:", id)
+  console.log("REQ USER:", req.user)
+
   try {
     const updatedThought = await Thought.findOneAndUpdate(
       {
@@ -202,5 +206,6 @@ router.patch("/:id", authenticateUser, async (req, res) => {
     })
   }
 })
+
 
 export default router
