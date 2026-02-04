@@ -140,9 +140,12 @@ router.delete("/:id", authenticateUser, async (req, res) => {
   const { id } = req.params
 
   try {
-    const thought = await Thought.findById(id)
+    const deletedThought = await Thought.findOneAndDelete({
+      _id: id,
+      userId: req.user._id,
+    })
 
-    if (!thought) {
+    if (!deletedThought) {
       return res.status(404).json({
         success: false,
         response: null,
@@ -150,22 +153,13 @@ router.delete("/:id", authenticateUser, async (req, res) => {
       })
     }
 
-    if (!thought.userId.equals(req.user._id)) {
-      return res.status(403).json({
-        success: false,
-        response: null,
-        message: "You can only delete your own thoughts"
-      })
-    }
-
-    await thought.deleteOne()
-
     return res.status(200).json({
       success: true,
-      response: thought,
+      response: deletedThought,
       message: "Thought deleted successfully",
     })
   } catch (error) {
+    console.error("DELETE ERROR:", error);
     return res.status(500).json({
       success: false,
       response: null,
@@ -180,9 +174,16 @@ router.patch("/:id", authenticateUser, async (req, res) => {
   const { message } = req.body
 
   try {
-    const thought = await Thought.findById(id)
+    const updatedThought = await Thought.findOneAndUpdate(
+      {
+        _id: id,
+        userId: req.user._id,
+      },
+      { message },
+      { new: true, runValidators: true }
+    )
 
-    if (!thought) {
+    if (!updatedThought) {
       return res.status(404).json({
         success: false,
         response: null,
@@ -190,20 +191,9 @@ router.patch("/:id", authenticateUser, async (req, res) => {
       })
     }
 
-    if (!thought.userId.equals(req.user._id)) {
-      return res.status(403).json({
-        success: false,
-        response: null,
-        message: "You can only update your own thoughts"
-      })
-    }
-
-    thought.message = message
-    await thought.save()
-
     return res.status(200).json({
       success: true,
-      response: thought,
+      response: updatedThought,
       message: "Thought updated successfully",
     })
   } catch (error) {
