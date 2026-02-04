@@ -167,7 +167,7 @@ router.delete("/:id", authenticateUser, async (req, res) => {
 })
 
 // Endpoint to update a thought's message by its id
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", authenticateUser, async (req, res) => {
   const { id } = req.params
   const { message } = req.body
 
