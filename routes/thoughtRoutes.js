@@ -140,28 +140,36 @@ router.delete("/:id", authenticateUser, async (req, res) => {
   const { id } = req.params
 
   try {
-    const deletedThought = await Thought.findOneAndDelete({
-      _id: id,
-      userId: req.user._id,
-    })
+    const thought = await Thought.findById(id)
 
-    if (!deletedThought) {
+    if (!thought) {
       return res.status(404).json({
         success: false,
         response: null,
         message: "Thought not found",
       })
     }
+
+    if (!thought.userId.equals(req.user._id)) {
+      return res.status(403).json({
+        success: false,
+        response: null,
+        message: "You can only delete your own thoughts"
+      })
+    }
+
+    await thought.deleteOne()
+
     return res.status(200).json({
       success: true,
-      response: deletedThought,
+      response: thought,
       message: "Thought deleted successfully",
     })
   } catch (error) {
     return res.status(500).json({
       success: false,
       response: null,
-      message: error,
+      message: "Internal server error",
     })
   }
 })
@@ -171,21 +179,10 @@ router.patch("/:id", authenticateUser, async (req, res) => {
   const { id } = req.params
   const { message } = req.body
 
-  console.log("🔥 PATCH /thoughts/:id HIT")
-  console.log("REQ PARAM ID:", id)
-  console.log("REQ USER:", req.user)
-
   try {
-    const updatedThought = await Thought.findOneAndUpdate(
-      {
-        _id: id,
-        userId: req.user._id,
-      },
-      { message },
-      { new: true, runValidators: true }
-    )
+    const thought = await Thought.findById(id)
 
-    if (!updatedThought) {
+    if (!thought) {
       return res.status(404).json({
         success: false,
         response: null,
@@ -193,9 +190,20 @@ router.patch("/:id", authenticateUser, async (req, res) => {
       })
     }
 
+    if (!thought.userId.equals(req.user._id)) {
+      return res.status(403).json({
+        success: false,
+        response: null,
+        message: "You can only update your own thoughts"
+      })
+    }
+
+    thought.message = message
+    await thought.save()
+
     return res.status(200).json({
       success: true,
-      response: updatedThought,
+      response: thought,
       message: "Thought updated successfully",
     })
   } catch (error) {
