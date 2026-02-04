@@ -1,6 +1,6 @@
 import express from "express"
-import { Thought } from "../models/Thought"
-import { authenticateUser } from "../middleware/authMiddleware"
+import { Thought } from "../models/Thought.js"
+import { authenticateUser } from "../middleware/authMiddleware.js"
 
 const router = express.Router()
 
@@ -209,7 +209,7 @@ router.patch("/:id", authenticateUser, async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      response: error,
+      response: null,
       message: "Error editing thought",
     })
   }
