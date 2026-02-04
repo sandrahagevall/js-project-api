@@ -38,6 +38,7 @@ app.get("/", (req, res) => {
   })
 })
 
+// The connections to the different routes with endpoints
 app.use("/users", userRoutes)
 app.use("/thoughts", thoughtRoutes)
 
