@@ -15,6 +15,6 @@ const userSchema = new Schema({
     type: String,
     default: () => crypto.randomBytes(128).toString("hex"),
   },
-})
+});
 
 export const User = mongoose.model("User", userSchema)

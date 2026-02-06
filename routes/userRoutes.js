@@ -1,6 +1,8 @@
 import express from "express"
 import bcrypt from "bcrypt"
 import { User } from "../models/User.js"
+import { Thought } from "../models/Thought.js"
+import { authenticateUser } from "../middleware/authMiddleware.js"
 
 const router = express.Router()
 
@@ -39,7 +41,7 @@ router.post("/signup", async (req, res) => {
       response: error,
     })
   }
-})
+});
 
 router.post("/login", async (req, res) => {
   try {
@@ -71,6 +73,18 @@ router.post("/login", async (req, res) => {
       response: error,
     })
   }
-})
+});
+
+router.get("/:id/thoughts", authenticateUser, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const thoughts = await Thought.find({ userId: id });
+
+    res.status(200).json(thoughts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 export default router
