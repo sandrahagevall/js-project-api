@@ -15,6 +15,11 @@ const userSchema = new Schema({
     type: String,
     default: () => crypto.randomBytes(128).toString("hex"),
   },
+  likedThoughts: {
+    type: [String],
+    required: true,
+    default: [],
+  }
 });
 
 export const User = mongoose.model("User", userSchema)

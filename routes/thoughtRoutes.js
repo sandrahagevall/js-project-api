@@ -1,6 +1,7 @@
 import express from "express"
 import { Thought } from "../models/Thought.js"
 import { authenticateUser } from "../middleware/authMiddleware.js"
+import { User } from "../models/User.js"
 
 const router = express.Router()
 
@@ -105,6 +106,7 @@ router.post("/", authenticateUser, async (req, res) => {
 // Endpoint to like a thought by its id
 router.post("/:id/like", async (req, res) => {
   const { id } = req.params
+  const { userId } = req.body
 
   try {
     const likedThought = await Thought.findByIdAndUpdate(
@@ -119,6 +121,22 @@ router.post("/:id/like", async (req, res) => {
         response: null,
         message: "Thought not found",
       })
+    }
+
+    if (userId) {
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { $addToSet: { likedThoughts: id } },
+        { new: true }
+      );
+
+      if (!updatedUser) {
+        return res.status(404).json({
+          success: false,
+          response: null,
+          message: "User not found",
+        })
+      }
     }
 
     return res.status(200).json({
