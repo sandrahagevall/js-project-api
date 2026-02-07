@@ -1,6 +1,5 @@
 import mongoose, { Schema } from "mongoose"
 
-
 const thoughtSchema = new Schema({
   message: {
     type: String,
