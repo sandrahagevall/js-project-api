@@ -14,7 +14,7 @@ router.post("/signup", async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "An error occured when creating the user",
+        message: "An error occurred when creating the user",
       })
     }
 
